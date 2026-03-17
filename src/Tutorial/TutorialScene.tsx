@@ -140,18 +140,10 @@ export const TutorialScene: React.FC<z.infer<typeof tutorialSchema>> = ({
   const shot = getActiveStep(SCREENSHOTS, frame);
   const rawT = Math.min(1, (frame - shot.from) / shot.zoomDuration);
   const scaleT = applyEasing(rawT, shot.zoomEasing ?? defaultZoomEasing);
-  const focusT = applyEasing(rawT, shot.focusEasing ?? defaultZoomEasing);
   const prevShot = SCREENSHOTS[Math.max(0, SCREENSHOTS.indexOf(shot) - 1)];
-  const fromZoom = prevShot.zoom;
-  const scale = interpolate(scaleT, [0, 1], [fromZoom, shot.zoom]);
-  const tx =
-    (0.5 - interpolate(focusT, [0, 1], [prevShot.focusX, shot.focusX])) *
-    FRAME_W *
-    (scale - 1);
-  const ty =
-    (0.5 - interpolate(focusT, [0, 1], [prevShot.focusY, shot.focusY])) *
-    TOTAL_H *
-    (scale - 1);
+  const scale = interpolate(scaleT, [0, 1], [prevShot.zoom, shot.zoom]);
+  const tx = (0.5 - shot.focusX) * FRAME_W * (scale - 1);
+  const ty = (0.5 - shot.focusY) * TOTAL_H * (scale - 1);
 
   // --- Cursor position (in browser-frame local space) ---
   const curIdx = (() => {

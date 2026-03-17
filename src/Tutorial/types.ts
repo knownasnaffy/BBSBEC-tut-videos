@@ -10,8 +10,6 @@ export interface ScreenshotStep {
   zoomDuration: number;
   /** Easing for the zoom scale transition. Defaults to easeOutCubic. */
   zoomEasing?: EasingFunction;
-  /** Easing for the focus pan transition. Defaults to easeOutCubic. */
-  focusEasing?: EasingFunction;
 }
 
 export interface CursorStep {
