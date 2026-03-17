@@ -2,6 +2,12 @@
 
 Guidance videos made with [Remotion](https://www.remotion.dev) for the BBSBEC ERP system. Each video walks staff through a specific workflow using annotated screen recordings, animated cursor, and zoom transitions — rendered programmatically in React.
 
+## A Glimpse
+
+> Some features like borders have faded in the video likely because of the conversion done by github when putting the video on their CDN. You can clone the repository and run the render yourself to get the full quality video.
+
+https://github.com/user-attachments/assets/3d0a3c47-d758-4e6e-ad31-d9264a72a51f
+
 ## Usage
 
 **Preview**
