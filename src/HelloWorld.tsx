@@ -39,25 +39,23 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
     [0, -90],
   );
 
-  // Fade out the animation at the end
-  const opacity = interpolate(
+  // Slide-fade out: elements move up and fade out
+  const outProgress = interpolate(
     frame,
-    [durationInFrames - 25, durationInFrames - 15],
-    [1, 0],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-    },
+    [durationInFrames - 50, durationInFrames - 20],
+    [0, 1],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
   );
+  const outEased = 1 - Math.pow(1 - outProgress, 3);
+  const opacity = 1 - outEased;
+  const slideOut = interpolate(outEased, [0, 1], [0, -60]);
 
-  // A <AbsoluteFill> is just a absolutely positioned <div>!
   return (
     <AbsoluteFill style={{ backgroundColor: "white" }}>
-      <AbsoluteFill style={{ opacity }}>
+      <AbsoluteFill style={{ opacity, transform: `translateY(${slideOut}px)` }}>
         <AbsoluteFill style={{ transform: `translateY(${logoTranslation}px)` }}>
           <Logo />
         </AbsoluteFill>
-        {/* Sequences can shift the time for its children! */}
         <Sequence from={65}>
           <Title titleText={propOne} titleColor={propTwo} />
         </Sequence>

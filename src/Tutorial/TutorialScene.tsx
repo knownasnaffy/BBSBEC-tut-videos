@@ -136,6 +136,10 @@ export const TutorialScene: React.FC<z.infer<typeof tutorialSchema>> = ({
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
+  // Browser window slides in from bottom over first 30 frames
+  const slideProgress = spring({ frame, fps, config: { damping: 18, stiffness: 80 }, durationInFrames: 40 });
+  const browserSlideY = interpolate(slideProgress, [0, 1], [200, 0]);
+
   // --- Screenshot / zoom ---
   const shot = getActiveStep(SCREENSHOTS, frame);
   const rawT = Math.min(1, (frame - shot.from) / shot.zoomDuration);
@@ -205,7 +209,7 @@ export const TutorialScene: React.FC<z.infer<typeof tutorialSchema>> = ({
       >
         <div
           style={{
-            transform: `scale(${scale}) translate(${tx}px, ${ty}px)`,
+            transform: `translateY(${browserSlideY}px) scale(${scale}) translate(${tx}px, ${ty}px)`,
             transformOrigin: "center center",
             position: "relative",
           }}
