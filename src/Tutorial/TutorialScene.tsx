@@ -2,6 +2,7 @@ import { Audio } from "@remotion/media";
 import {
   AbsoluteFill,
   Easing,
+  EasingFunction,
   interpolate,
   Sequence,
   spring,
@@ -81,7 +82,7 @@ const CURSORS: CursorStep[] = [
     click: true,
   },
   { from: 283, moveDuration: 0, x: 0.53, y: 0.62, type: "default" },
-  { from: 301, moveDuration: 60, x: 1.15, y: 1.1, type: "default" },
+  { from: 301, moveDuration: 60, x: 0.9, y: 0.9, type: "default" },
   // Second view: cursor comes back in, moves to target, clicks
   { from: 390, moveDuration: 40, x: 0.015, y: 0.015, type: "pointer" },
   {
@@ -109,6 +110,16 @@ function getActiveStep<T extends { from: number }>(
   return active;
 }
 
+function applyEasing(t: number, easingFn: EasingFunction) {
+  return interpolate(t, [0, 1], [0, 1], {
+    easing: easingFn,
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+}
+
+const defaultZoomEasing = Easing.out(Easing.cubic);
+
 function easeOutExpo(t: number) {
   return interpolate(t, [0, 1], [0, 1], {
     easing: Easing.out(Easing.exp),
@@ -127,19 +138,18 @@ export const TutorialScene: React.FC<z.infer<typeof tutorialSchema>> = ({
 
   // --- Screenshot / zoom ---
   const shot = getActiveStep(SCREENSHOTS, frame);
-  const zoomT = easeOutExpo(
-    Math.min(1, (frame - shot.from) / shot.zoomDuration),
-  );
+  const rawT = Math.min(1, (frame - shot.from) / shot.zoomDuration);
+  const scaleT = applyEasing(rawT, shot.zoomEasing ?? defaultZoomEasing);
+  const focusT = applyEasing(rawT, shot.focusEasing ?? defaultZoomEasing);
   const prevShot = SCREENSHOTS[Math.max(0, SCREENSHOTS.indexOf(shot) - 1)];
   const fromZoom = prevShot.zoom;
-  const scale = interpolate(zoomT, [0, 1], [fromZoom, shot.zoom]);
-  // Translation: offset is 0 at scale=1, grows with zoom. Uses (scale-1) so window stays centered when unzoomed.
+  const scale = interpolate(scaleT, [0, 1], [fromZoom, shot.zoom]);
   const tx =
-    (0.5 - interpolate(zoomT, [0, 1], [prevShot.focusX, shot.focusX])) *
+    (0.5 - interpolate(focusT, [0, 1], [prevShot.focusX, shot.focusX])) *
     FRAME_W *
     (scale - 1);
   const ty =
-    (0.5 - interpolate(zoomT, [0, 1], [prevShot.focusY, shot.focusY])) *
+    (0.5 - interpolate(focusT, [0, 1], [prevShot.focusY, shot.focusY])) *
     TOTAL_H *
     (scale - 1);
 
@@ -214,7 +224,6 @@ export const TutorialScene: React.FC<z.infer<typeof tutorialSchema>> = ({
             width={FRAME_W}
             height={FRAME_H}
           />
-          {/* Cursor inside scaled div so it inherits the zoom transform */}
           <div
             style={{
               position: "absolute",

@@ -1,17 +1,17 @@
+import { EasingFunction } from "remotion";
 import { CursorType } from "./Cursor";
 
 export interface ScreenshotStep {
-  /** Path passed to staticFile() */
   src: string;
-  /** Frame at which this screenshot becomes active */
   from: number;
-  /** Normalized focus point (0-1) within the screenshot content area */
   focusX: number;
   focusY: number;
-  /** Zoom scale (1 = no zoom) */
   zoom: number;
-  /** How many frames the zoom-in animation takes */
   zoomDuration: number;
+  /** Easing for the zoom scale transition. Defaults to easeOutCubic. */
+  zoomEasing?: EasingFunction;
+  /** Easing for the focus pan transition. Defaults to easeOutCubic. */
+  focusEasing?: EasingFunction;
 }
 
 export interface CursorStep {

@@ -82,7 +82,11 @@ export const BrowserFrame: React.FC<BrowserFrameProps> = ({
       {/* Screenshot */}
       <Img
         src={screenshotSrc}
-        style={{ width, height, display: "block", objectFit: "cover" }}
+        style={{
+          width,
+          height,
+          display: "block",
+        }}
       />
     </div>
   );
