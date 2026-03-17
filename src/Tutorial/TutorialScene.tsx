@@ -28,7 +28,7 @@ const TOTAL_H = FRAME_H + CHROME_H;
 // First entry is the "rest" state (zoom=1, centered). Zoom-in starts at frame 90 (~2s after cursor arrives).
 const SCREENSHOTS: ScreenshotStep[] = [
   {
-    src: "screenshots/screenshot-2026-03-17_19-34-56.png",
+    src: "screenshots/auth.png",
     from: 0,
     focusX: 0.5,
     focusY: 0.5,
@@ -36,37 +36,64 @@ const SCREENSHOTS: ScreenshotStep[] = [
     zoomDuration: 1,
   },
   {
-    src: "screenshots/screenshot-2026-03-17_19-34-56.png",
+    src: "screenshots/auth.png",
     from: 90,
     focusX: 0.5,
-    focusY: 0.57,
-    zoom: 2.5,
+    focusY: 0.567,
+    zoom: 2.4,
     zoomDuration: 40,
   },
   {
-    // Becomes active 3 frames after the click at frame 280 (≈100ms at 30fps)
-    src: "screenshots/screenshot-2026-03-17_19-35-20.png",
+    src: "screenshots/dashboard.png",
     from: 283,
     focusX: 0.5,
     focusY: 0.5,
     zoom: 1,
     zoomDuration: 30,
   },
+  {
+    src: "screenshots/dashboard.png",
+    from: 390,
+    focusX: 0.3,
+    focusY: 0.3,
+    zoom: 2.5,
+    zoomDuration: 40,
+  },
+  {
+    src: "screenshots/sidebar.png",
+    from: 493,
+    focusX: 0.3,
+    focusY: 0.3,
+    zoom: 2.5,
+    zoomDuration: 30,
+  },
 ];
 
 const CURSORS: CursorStep[] = [
-  { from: 0, moveDuration: 0, x: -0.2, y: -0.2, type: "default" }, // off-screen
-  { from: 30, moveDuration: 40, x: 0.5, y: 0.63, type: "pointer" }, // move to button
+  { from: 0, moveDuration: 0, x: -0.2, y: -0.2, type: "default" },
+  { from: 30, moveDuration: 40, x: 0.53, y: 0.62, type: "pointer" },
   {
     from: 280,
     moveDuration: 0,
-    x: 0.5,
-    y: 0.63,
+    x: 0.53,
+    y: 0.62,
     type: "pointer",
     click: true,
   },
-  { from: 283, moveDuration: 0, x: 0.5, y: 0.63, type: "default" }, // hold, type flips
-  { from: 301, moveDuration: 40, x: 1.15, y: 1.1, type: "default" }, // slide to bottom-right outside frame
+  { from: 283, moveDuration: 0, x: 0.53, y: 0.62, type: "default" },
+  { from: 301, moveDuration: 60, x: 1.15, y: 1.1, type: "default" },
+  // Second view: cursor comes back in, moves to target, clicks
+  { from: 390, moveDuration: 40, x: 0.015, y: 0.015, type: "pointer" },
+  {
+    from: 490,
+    moveDuration: 0,
+    x: 0.015,
+    y: 0.015,
+    type: "pointer",
+    click: true,
+  },
+  { from: 493, moveDuration: 0, x: 0.015, y: 0.015, type: "default" },
+  { from: 511, moveDuration: 40, x: 0.15, y: 0.01, type: "default" },
 ];
 
 // --- Helpers ---
@@ -140,17 +167,20 @@ export const TutorialScene: React.FC<z.infer<typeof tutorialSchema>> = ({
   const curY =
     CHROME_H + interpolate(moveT, [0, 1], [prevCurStep.y, curStep.y]) * FRAME_H;
 
-  // --- Click animation ---
-  const clickStep = CURSORS.find((s) => s.click);
-  const clickFrame = clickStep ? clickStep.from + clickStep.moveDuration : -999;
+  // --- Click animation (supports multiple clicks) ---
+  const clickSteps = CURSORS.filter((s) => s.click);
+  const clickFrames = clickSteps.map((s) => s.from + s.moveDuration);
+  // Find the most recent click frame that has started
+  const activeClickFrame =
+    [...clickFrames].reverse().find((f) => frame >= f) ?? -999;
   const clickDown = spring({
-    frame: frame - clickFrame,
+    frame: frame - activeClickFrame,
     fps,
     config: { damping: 30, stiffness: 400 },
     durationInFrames: 8,
   });
   const clickUp = spring({
-    frame: frame - (clickFrame + 8),
+    frame: frame - (activeClickFrame + 8),
     fps,
     config: { damping: 30, stiffness: 400 },
     durationInFrames: 8,
@@ -198,10 +228,12 @@ export const TutorialScene: React.FC<z.infer<typeof tutorialSchema>> = ({
         </div>
       </AbsoluteFill>
 
-      {/* Click sound via Sequence for reliable playback */}
-      <Sequence from={clickFrame} durationInFrames={10} premountFor={fps}>
-        <Audio src="https://remotion.media/mouse-click.wav" />
-      </Sequence>
+      {/* Click sounds */}
+      {clickFrames.map((cf) => (
+        <Sequence key={cf} from={cf} durationInFrames={10} premountFor={fps}>
+          <Audio src="https://remotion.media/mouse-click.wav" />
+        </Sequence>
+      ))}
     </AbsoluteFill>
   );
 };
