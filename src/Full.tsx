@@ -5,7 +5,7 @@ import {
   TransitionPresentationComponentProps,
 } from "@remotion/transitions";
 import { AbsoluteFill } from "remotion";
-import { HelloWorld } from "./HelloWorld";
+import { Intro } from "./Intro";
 import { Outro } from "./Outro";
 import { TutorialScene } from "./Tutorial/TutorialScene";
 
@@ -37,7 +37,7 @@ export const Full: React.FC = () => {
   return (
     <TransitionSeries>
       <TransitionSeries.Sequence durationInFrames={210}>
-        <HelloWorld
+        <Intro
           titleText="Setting up Proctor Schedule"
           titleColor="#000000"
         />

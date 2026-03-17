@@ -1,5 +1,5 @@
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
-import { FONT_FAMILY } from "./HelloWorld/constants";
+import { FONT_FAMILY } from "./Intro/constants";
 
 export const Outro: React.FC = () => {
   const frame = useCurrentFrame();

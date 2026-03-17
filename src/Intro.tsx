@@ -8,15 +8,15 @@ import {
   useVideoConfig,
 } from "remotion";
 import { z } from "zod";
-import { Logo } from "./HelloWorld/Logo";
-import { Title } from "./HelloWorld/Title";
+import { Logo } from "./Intro/Logo";
+import { Title } from "./Intro/Title";
 
-export const myCompSchema = z.object({
+export const introSchema = z.object({
   titleText: z.string(),
   titleColor: zColor(),
 });
 
-export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
+export const Intro: React.FC<z.infer<typeof introSchema>> = ({
   titleText: propOne,
   titleColor: propTwo,
 }) => {

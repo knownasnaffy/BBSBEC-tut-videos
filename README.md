@@ -1,54 +1,21 @@
-# Remotion video
+# BBSBEC ERP Guidance Videos
 
-<p align="center">
-  <a href="https://github.com/remotion-dev/logo">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://github.com/remotion-dev/logo/raw/main/animated-logo-banner-dark.apng">
-      <img alt="Animated Remotion Logo" src="https://github.com/remotion-dev/logo/raw/main/animated-logo-banner-light.gif">
-    </picture>
-  </a>
-</p>
+Guidance videos made with [Remotion](https://www.remotion.dev) for the BBSBEC ERP system. Each video walks staff through a specific workflow using annotated screen recordings, animated cursor, and zoom transitions — rendered programmatically in React.
 
-Welcome to your Remotion project!
+## Usage
 
-## Commands
-
-**Install Dependencies**
-
-```console
-bun install
-```
-
-**Start Preview**
+**Preview**
 
 ```console
 bun run dev
 ```
 
-**Render video**
+**Render**
 
 ```console
 bunx remotion render
 ```
 
-**Upgrade Remotion**
-
-```console
-bunx remotion upgrade
-```
-
-## Docs
-
-Get started with Remotion by reading the [fundamentals page](https://www.remotion.dev/docs/the-fundamentals).
-
-## Help
-
-We provide help on our [Discord server](https://discord.gg/6VzzNDwUwV).
-
-## Issues
-
-Found an issue with Remotion? [File an issue here](https://github.com/remotion-dev/remotion/issues/new).
-
 ## License
 
-Note that for some entities a company license is needed. [Read the terms here](https://github.com/remotion-dev/remotion/blob/main/LICENSE.md).
+This project uses Remotion, which requires a company license for certain use cases. These videos are produced solely for internal staff documentation at BBSBEC and are not used commercially or distributed publicly — which falls within the bounds of Remotion's free license. For the full terms, see the [Remotion license](https://github.com/remotion-dev/remotion/blob/main/LICENSE.md).

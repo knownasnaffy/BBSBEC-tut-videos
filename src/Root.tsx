@@ -1,12 +1,16 @@
 import "./index.css";
 import { Composition } from "remotion";
 import { Full } from "./Full";
-import { HelloWorld, myCompSchema } from "./HelloWorld";
+import { Intro, introSchema } from "./Intro";
 import { Outro } from "./Outro";
 import { TutorialScene, tutorialSchema } from "./Tutorial/TutorialScene";
 
-// Total: 270 + 600 + 600 - 30 - 30 = 1410 frames
-const FULL_DURATION = 210 + 600 + 400 - 30 - 30;
+const INTRO_FRAMES = 210;
+const TUTORIAL_FRAMES = 600;
+const OUTRO_FRAMES = 400;
+const TRANSITION_FRAMES = 30;
+const FULL_DURATION =
+  INTRO_FRAMES + TUTORIAL_FRAMES + OUTRO_FRAMES - TRANSITION_FRAMES * 2;
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -20,13 +24,13 @@ export const RemotionRoot: React.FC = () => {
         height={1080}
       />
       <Composition
-        id="HelloWorld"
-        component={HelloWorld}
-        durationInFrames={210}
+        id="Intro"
+        component={Intro}
+        durationInFrames={INTRO_FRAMES}
         fps={30}
         width={1920}
         height={1080}
-        schema={myCompSchema}
+        schema={introSchema}
         defaultProps={{
           titleText: "Setting up Proctor Schedule",
           titleColor: "#000000",
@@ -35,7 +39,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="Outro"
         component={Outro}
-        durationInFrames={400}
+        durationInFrames={OUTRO_FRAMES}
         fps={30}
         width={1920}
         height={1080}
@@ -43,7 +47,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="Tutorial"
         component={TutorialScene}
-        durationInFrames={600}
+        durationInFrames={TUTORIAL_FRAMES}
         fps={30}
         width={1920}
         height={1080}
