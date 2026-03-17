@@ -21,11 +21,11 @@ export const Cursor: React.FC<CursorProps> = ({ type = "default", scale = 1 }) =
         transform: `scale(${scale})`,
         transformOrigin: "top left",
         display: "inline-block",
-        filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.5))",
+        filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))",
         pointerEvents: "none",
       }}
     >
-      <Img src={cursorFile[type]} style={{ width: 32, height: 32 }} />
+      <Img src={cursorFile[type]} style={{ width: 80, height: 80 }} />
     </div>
   );
 };

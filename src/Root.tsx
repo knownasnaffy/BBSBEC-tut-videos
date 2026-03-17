@@ -22,13 +22,12 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="Tutorial"
         component={TutorialScene}
-        durationInFrames={300}
+        durationInFrames={420}
         fps={30}
         width={1920}
         height={1080}
         schema={tutorialSchema}
         defaultProps={{
-          screenshotSrc: "screenshots/screenshot-2026-03-17_19-34-56.png",
           url: "app.example.com",
         }}
       />

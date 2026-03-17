@@ -1,7 +1,9 @@
+import { Audio } from "@remotion/media";
 import {
   AbsoluteFill,
-  Audio,
+  Easing,
   interpolate,
+  Sequence,
   spring,
   staticFile,
   useCurrentFrame,
@@ -11,65 +13,144 @@ import { z } from "zod";
 import { BrowserFrame } from "./BrowserFrame";
 import { Cursor } from "./Cursor";
 import { GridBackground } from "./GridBackground";
+import { CursorStep, ScreenshotStep } from "./types";
 
 export const tutorialSchema = z.object({
-  screenshotSrc: z.string(),
   url: z.string(),
 });
 
-// Dimensions of the browser frame content area
-const FRAME_W = 1400;
-const FRAME_H = 787;
+const FRAME_W = 1600;
+const FRAME_H = 900;
 const CHROME_H = 44;
+const TOTAL_H = FRAME_H + CHROME_H;
 
-// Where to zoom into (normalized 0-1 within the screenshot)
-const FOCUS_X = 0.5; // center-x of the region of interest
-const FOCUS_Y = 0.54; // center-y of the region of interest
-const ZOOM_SCALE = 2.5;
+// --- Timeline definition ---
+// First entry is the "rest" state (zoom=1, centered). Zoom-in starts at frame 90 (~2s after cursor arrives).
+const SCREENSHOTS: ScreenshotStep[] = [
+  {
+    src: "screenshots/screenshot-2026-03-17_19-34-56.png",
+    from: 0,
+    focusX: 0.5,
+    focusY: 0.5,
+    zoom: 1,
+    zoomDuration: 1,
+  },
+  {
+    src: "screenshots/screenshot-2026-03-17_19-34-56.png",
+    from: 90,
+    focusX: 0.5,
+    focusY: 0.57,
+    zoom: 2.5,
+    zoomDuration: 40,
+  },
+  {
+    // Becomes active 3 frames after the click at frame 280 (≈100ms at 30fps)
+    src: "screenshots/screenshot-2026-03-17_19-35-20.png",
+    from: 283,
+    focusX: 0.5,
+    focusY: 0.5,
+    zoom: 1,
+    zoomDuration: 30,
+  },
+];
 
-// Click happens at frame 120
-const CLICK_FRAME = 220;
+const CURSORS: CursorStep[] = [
+  { from: 0, moveDuration: 0, x: -0.2, y: -0.2, type: "default" }, // off-screen
+  { from: 30, moveDuration: 40, x: 0.5, y: 0.63, type: "pointer" }, // move to button
+  {
+    from: 280,
+    moveDuration: 0,
+    x: 0.5,
+    y: 0.63,
+    type: "pointer",
+    click: true,
+  },
+  { from: 283, moveDuration: 0, x: 0.5, y: 0.63, type: "default" }, // hold, type flips
+  { from: 301, moveDuration: 40, x: 1.15, y: 1.1, type: "default" }, // slide to bottom-right outside frame
+];
+
+// --- Helpers ---
+
+function getActiveStep<T extends { from: number }>(
+  steps: T[],
+  frame: number,
+): T {
+  let active = steps[0];
+  for (const s of steps) {
+    if (frame >= s.from) active = s;
+  }
+  return active;
+}
+
+function easeOutExpo(t: number) {
+  return interpolate(t, [0, 1], [0, 1], {
+    easing: Easing.out(Easing.exp),
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+}
+
+// --- Component ---
 
 export const TutorialScene: React.FC<z.infer<typeof tutorialSchema>> = ({
-  screenshotSrc,
   url,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // --- Zoom animation: starts at frame 40, settles by ~80 ---
-  const zoomProgress = spring({
-    frame: frame - 40,
-    fps,
-    config: { damping: 80, stiffness: 120, mass: 1 },
-    durationInFrames: 40,
-  });
-
-  const scale = interpolate(zoomProgress, [0, 1], [1, ZOOM_SCALE]);
-
-  // Translate so the focus point stays centered
-  const totalW = FRAME_W;
-  const totalH = FRAME_H + CHROME_H;
-  const tx = interpolate(
-    zoomProgress,
-    [0, 1],
-    [0, (0.5 - FOCUS_X) * totalW * ZOOM_SCALE],
+  // --- Screenshot / zoom ---
+  const shot = getActiveStep(SCREENSHOTS, frame);
+  const zoomT = easeOutExpo(
+    Math.min(1, (frame - shot.from) / shot.zoomDuration),
   );
-  const ty = interpolate(
-    zoomProgress,
-    [0, 1],
-    [0, (0.5 - FOCUS_Y) * totalH * ZOOM_SCALE],
-  );
+  const prevShot = SCREENSHOTS[Math.max(0, SCREENSHOTS.indexOf(shot) - 1)];
+  const fromZoom = prevShot.zoom;
+  const scale = interpolate(zoomT, [0, 1], [fromZoom, shot.zoom]);
+  // Translation: offset is 0 at scale=1, grows with zoom. Uses (scale-1) so window stays centered when unzoomed.
+  const tx =
+    (0.5 - interpolate(zoomT, [0, 1], [prevShot.focusX, shot.focusX])) *
+    FRAME_W *
+    (scale - 1);
+  const ty =
+    (0.5 - interpolate(zoomT, [0, 1], [prevShot.focusY, shot.focusY])) *
+    TOTAL_H *
+    (scale - 1);
 
-  // --- Click animation: scale down then up ---
+  // --- Cursor position (in browser-frame local space) ---
+  const curIdx = (() => {
+    let idx = 0;
+    for (let i = 0; i < CURSORS.length; i++) {
+      if (frame >= CURSORS[i].from) idx = i;
+    }
+    return idx;
+  })();
+  const curStep = CURSORS[curIdx];
+  const prevCurStep = CURSORS[Math.max(0, curIdx - 1)];
+  const moveT =
+    curStep.moveDuration === 0
+      ? 1
+      : easeOutExpo(
+          Math.min(
+            1,
+            Math.max(0, (frame - curStep.from) / curStep.moveDuration),
+          ),
+        );
+  const cursorType = curStep.type;
+  const curX = interpolate(moveT, [0, 1], [prevCurStep.x, curStep.x]) * FRAME_W;
+  const curY =
+    CHROME_H + interpolate(moveT, [0, 1], [prevCurStep.y, curStep.y]) * FRAME_H;
+
+  // --- Click animation ---
+  const clickStep = CURSORS.find((s) => s.click);
+  const clickFrame = clickStep ? clickStep.from + clickStep.moveDuration : -999;
   const clickDown = spring({
-    frame: frame - CLICK_FRAME,
+    frame: frame - clickFrame,
     fps,
     config: { damping: 30, stiffness: 400 },
     durationInFrames: 8,
   });
   const clickUp = spring({
-    frame: frame - (CLICK_FRAME + 8),
+    frame: frame - (clickFrame + 8),
     fps,
     config: { damping: 30, stiffness: 400 },
     durationInFrames: 8,
@@ -79,20 +160,10 @@ export const TutorialScene: React.FC<z.infer<typeof tutorialSchema>> = ({
     interpolate(clickDown, [0, 1], [0, 0.25]) +
     interpolate(clickUp, [0, 1], [0, 0.25]);
 
-  // Cursor position (normalized within the frame content area)
-  const cursorNX = 0.5;
-  const cursorNY = 0.645;
-  const cursorX = cursorNX * FRAME_W;
-  const cursorY = CHROME_H + cursorNY * FRAME_H;
-
-  // Show click sound exactly at CLICK_FRAME
-  const playClick = frame === CLICK_FRAME;
-
   return (
     <AbsoluteFill>
       <GridBackground />
 
-      {/* Centered, elevated browser frame with zoom */}
       <AbsoluteFill
         style={{
           display: "flex",
@@ -109,27 +180,28 @@ export const TutorialScene: React.FC<z.infer<typeof tutorialSchema>> = ({
         >
           <BrowserFrame
             url={url}
-            screenshotSrc={staticFile(screenshotSrc)}
+            screenshotSrc={staticFile(shot.src)}
             width={FRAME_W}
             height={FRAME_H}
           />
-
-          {/* Cursor overlay */}
+          {/* Cursor inside scaled div so it inherits the zoom transform */}
           <div
             style={{
               position: "absolute",
-              left: cursorX,
-              top: cursorY,
+              left: curX,
+              top: curY,
               pointerEvents: "none",
             }}
           >
-            <Cursor type="pointer" scale={cursorScale} />
+            <Cursor type={cursorType} scale={cursorScale} />
           </div>
         </div>
       </AbsoluteFill>
 
-      {/* Click sound */}
-      {playClick && <Audio src={staticFile("click.mp3")} />}
+      {/* Click sound via Sequence for reliable playback */}
+      <Sequence from={clickFrame} durationInFrames={10} premountFor={fps}>
+        <Audio src="https://remotion.media/mouse-click.wav" />
+      </Sequence>
     </AbsoluteFill>
   );
 };
