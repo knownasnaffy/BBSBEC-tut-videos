@@ -9,28 +9,23 @@ import {
 } from "remotion";
 import { z } from "zod";
 import { Logo } from "./HelloWorld/Logo";
-import { Subtitle } from "./HelloWorld/Subtitle";
 import { Title } from "./HelloWorld/Title";
 
 export const myCompSchema = z.object({
   titleText: z.string(),
   titleColor: zColor(),
-  logoColor1: zColor(),
-  logoColor2: zColor(),
 });
 
 export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
   titleText: propOne,
   titleColor: propTwo,
-  logoColor1,
-  logoColor2,
 }) => {
   const frame = useCurrentFrame();
   const { durationInFrames, fps } = useVideoConfig();
 
   // Animate from 0 to 1 after 25 frames
   const logoTranslationProgress = spring({
-    frame: frame - 25,
+    frame: frame - 48,
     fps,
     config: {
       damping: 100,
@@ -41,7 +36,7 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
   const logoTranslation = interpolate(
     logoTranslationProgress,
     [0, 1],
-    [0, -150],
+    [0, -90],
   );
 
   // Fade out the animation at the end
@@ -60,15 +55,11 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
     <AbsoluteFill style={{ backgroundColor: "white" }}>
       <AbsoluteFill style={{ opacity }}>
         <AbsoluteFill style={{ transform: `translateY(${logoTranslation}px)` }}>
-          <Logo logoColor1={logoColor1} logoColor2={logoColor2} />
+          <Logo />
         </AbsoluteFill>
         {/* Sequences can shift the time for its children! */}
-        <Sequence from={35}>
+        <Sequence from={65}>
           <Title titleText={propOne} titleColor={propTwo} />
-        </Sequence>
-        {/* The subtitle will only enter on the 75th frame. */}
-        <Sequence from={75}>
-          <Subtitle />
         </Sequence>
       </AbsoluteFill>
     </AbsoluteFill>
