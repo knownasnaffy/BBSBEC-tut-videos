@@ -8,6 +8,8 @@ Guidance videos made with [Remotion](https://www.remotion.dev) for the BBSBEC ER
 
 https://github.com/user-attachments/assets/3d0a3c47-d758-4e6e-ad31-d9264a72a51f
 
+> There are some timing issues, as you might have noticed. They are somewhat intentional, because the original plan was to add an AI-generated guidance audio in that timeframe. As features get merged, notices and previews will be updated.
+
 ## Usage
 
 **Preview**
